@@ -1,58 +1,11 @@
+"use client";
+
 import "../global.css";
-import { Inter } from "@next/font/google";
-import LocalFont from "@next/font/local";
-import { Metadata } from "next";
-import { Analytics } from "./components/analytics";
+import { Inter } from "next/font/google";
+import { useState, useEffect } from "react";
 
-export const metadata: Metadata = {
-  title: {
-    default: "chronark.com",
-    template: "%s | chronark.com",
-  },
-  description: "Co-founder of unkey.dev and founder of planetfall.io",
-  openGraph: {
-    title: "chronark.com",
-    description:
-      "Co-founder of unkey.dev and founder of planetfall.io",
-    url: "https://chronark.com",
-    siteName: "chronark.com",
-    images: [
-      {
-        url: "https://chronark.com/og.png",
-        width: 1920,
-        height: 1080,
-      },
-    ],
-    locale: "en-US",
-    type: "website",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  twitter: {
-    title: "Chronark",
-    card: "summary_large_image",
-  },
-  icons: {
-    shortcut: "/favicon.png",
-  },
-};
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const calSans = LocalFont({
-  src: "../public/fonts/CalSans-SemiBold.ttf",
-  variable: "--font-calsans",
+  subsets: ["latin"]
 });
 
 export default function RootLayout({
@@ -60,15 +13,71 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [windowWidth, setWindowWidth] = useState(0);
+  const [windowHeight, setWindowHeight] = useState(0);
+
+  const getBlocks = () => {
+    const blockSize = Math.max(windowWidth * 0.05, 50); // Set a minimum size for blocks
+    const nbOfBlocks = 20 * Math.ceil(windowHeight / blockSize); // Total number of blocks (20 columns)
+
+    return [...Array(nbOfBlocks)].map((_, index) => {
+      const randomNoBorder = Math.random() > 0.7;
+        return (
+          <div
+            key={index}
+            onMouseEnter={(e) => colorize(e.target)}
+            className={`block flex items-center justify-center ${
+              randomNoBorder ? '' : 'border border-zinc-500'
+            }`}
+            style={{
+              height: '100%',
+              width: '100%',
+              opacity: 0.3,
+            }}
+          ></div>
+        );
+      }
+    );
+  };
+
+  const colorize = (el) => {
+    el.style.backgroundColor = 'white';
+    setTimeout(() => {
+      el.style.backgroundColor = 'transparent';
+    }, 300);
+  };
+
+  useEffect(() => {
+    // Set the window size dynamically on load and on resize
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      setWindowHeight(window.innerHeight);
+    };
+
+    handleResize(); // Call once initially
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup listener on component unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
   return (
-    <html lang="en" className={[inter.variable, calSans.variable].join(" ")}>
-      <head>
-        <Analytics />
-      </head>
-      <body
-        className={`bg-black ${process.env.NODE_ENV === "development" ? "debug-screens" : undefined
-          }`}
+    <html lang="en" className={inter.className}>
+      <body className={'bg-black'}>
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: "repeat(20, 1fr)",
+          gridAutoRows: "1fr",
+          width: "100%",
+          height: "100%",
+          gap: "1px",
+          zIndex: 0
+        }}
       >
+        {getBlocks()}
+      </div>
         {children}
       </body>
     </html>
